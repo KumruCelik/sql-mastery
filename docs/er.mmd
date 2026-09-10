@@ -1,0 +1,112 @@
+erDiagram
+    categories ||--o{ categories : "ust-alt"
+    categories ||--o{ products : "icerir"
+    users ||--o{ orders : "verir"
+    users ||--o{ reviews : "yazar"
+    products ||--o{ order_items : "satilir"
+    products ||--o{ reviews : "degerlendirilir"
+    products ||--o{ inventory_movements : "hareket gorur"
+    orders ||--o{ order_items : "icerir"
+    orders ||--o{ payments : "odenir"
+    orders ||--o{ shipments : "gonderilir"
+    orders ||--o{ order_coupons : "kupon alir"
+    orders ||--o{ inventory_movements : "tetikler"
+    coupons ||--o{ order_coupons : "kullanilir"
+
+    users {
+        bigint id PK
+        text email UK
+        text full_name
+        text country
+        boolean is_active
+        timestamptz created_at
+    }
+
+    categories {
+        bigint id PK
+        bigint parent_id FK "kendine referans, NULL ise kok"
+        text name
+        text slug UK
+    }
+
+    products {
+        bigint id PK
+        bigint category_id FK
+        text sku UK
+        text name
+        numeric list_price "guncel liste fiyati"
+        numeric unit_cost "guncel birim maliyet"
+        integer stock_cached "turetilmis, defterden hesaplanir"
+        boolean is_active
+        timestamptz created_at
+    }
+
+    orders {
+        bigint id PK
+        bigint user_id FK
+        text status "created, paid, shipped, delivered, cancelled, returned"
+        text shipping_country
+        timestamptz ordered_at
+    }
+
+    order_items {
+        bigint id PK
+        bigint order_id FK
+        bigint product_id FK
+        integer quantity
+        numeric unit_price "siparis anindaki satis fiyati"
+        numeric unit_cost "siparis anindaki maliyet"
+    }
+
+    payments {
+        bigint id PK
+        bigint order_id FK
+        numeric amount "iade negatif"
+        text method "card, transfer, cod"
+        text status "success, failed, refunded"
+        timestamptz paid_at
+    }
+
+    shipments {
+        bigint id PK
+        bigint order_id FK
+        text carrier
+        text tracking_no UK
+        text status "label_created, in_transit, delivered, returned"
+        timestamptz shipped_at
+        timestamptz delivered_at
+    }
+
+    reviews {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+        integer rating "1-5"
+        text body
+        timestamptz created_at
+    }
+
+    coupons {
+        bigint id PK
+        text code UK
+        text discount_type "percent, amount"
+        numeric discount_value
+        integer max_uses
+        timestamptz valid_from
+        timestamptz valid_to
+    }
+
+    order_coupons {
+        bigint order_id PK
+        bigint coupon_id PK
+        numeric discount_applied "bu kupon bu sipariste kac lira indirdi"
+    }
+
+    inventory_movements {
+        bigint id PK
+        bigint product_id FK
+        bigint order_id FK "satis disi hareketlerde NULL"
+        text movement_type "purchase, sale, return, adjustment"
+        integer quantity "giris pozitif, cikis negatif"
+        timestamptz occurred_at
+    }
