@@ -6,8 +6,22 @@ Sıfırdan kurulan bir e-ticaret OLTP şeması, 685 bin satırlık sentetik veri
 50 iş sorusundan oluşan analitik sorgu seti, performans laboratuvarı, SCD2'li star schema
 ve DuckDB ile dosya analitiği.
 
-Yazılı çıktılar (cevaplar, ölçümler, araştırma yazıları) ayrı bir depoda:
-[`ai-engineer-journey/bolum03`](https://github.com/KumruCelik/ai-engineer-journey/tree/main/bolum03)
+**Kod bu depoda, yazılı çıktılar ayrı depoda.** İkisi karşılıklı bağlıdır; hangi dosyanın
+hangi raporu ürettiği aşağıdaki tabloda.
+
+---
+
+## Ölçüm ve analiz raporları
+
+| Ödev | Kod (bu depo) | Rapor ([ai-engineer-journey](https://github.com/KumruCelik/ai-engineer-journey/tree/main/bolum03)) |
+|---|---|---|
+| 3.1 — Şema ve veri | [`migrations/`](migrations/), [`scripts/generate.py`](scripts/generate.py), [`seed/`](seed/) | [Tasarım kararları (`DESIGN.md`)](DESIGN.md) · [Veri kaynağı](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/data/README.md) |
+| 3.2 — 50 iş sorusu | [`queries/`](queries/) | [Soru listesi](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/notes/odev-3.2/sorular.md) · [Cevaplar ve iş yorumları](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/notes/odev-3.2/cevaplar.md) |
+| 3.3 — Performans | [`perf/`](perf/) | [Ölçümler ve plan analizleri](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/notes/odev-3.3/olcumler.md) |
+| 3.4 — Star schema | [`star/`](star/) | [OLTP / star karşılaştırması](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/notes/odev-3.4/karsilastirma.md) |
+| 3.5 — DuckDB | [`duck/`](duck/) | [DuckDB analizi ve pandas karşılaştırması](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/notes/odev-3.5/duckdb_analizi.md) |
+| Araştırma | — | [OLTP ve OLAP depolama](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/research/01_oltp_vs_olap_depolama.md) · [SCD2 ve ML veri sızıntısı](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/research/02_scd2_ve_ml_leakage.md) |
+| Kontrol soruları | — | [Cevaplar](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/notes/kontrol_sorulari.md) |
 
 ---
 
@@ -39,7 +53,7 @@ ve veri kalitesi kontrollerini çalıştırır. Ödev 3.1'in tamamlanma ölçüt
 | `scripts/` | `generate.py` — sentetik veri üreticisi |
 | `seed/` | Yükleme (`load.sql`), stok yenileme, veri kalitesi kontrolleri |
 | `queries/` | Ödev 3.2'nin 50 iş sorusu (`q01`–`q50`) |
-| `perf/` | Ödev 3.3 performans ölçümleri (`p1`–`p6`) |
+| `perf/` | Ödev 3.3 performans ölçümleri (`p1`–`p7`) |
 | `star/` | Ödev 3.4 analitik katman: yükleme, SCD2 testi, OLTP/star karşılaştırması |
 | `duck/` | Ödev 3.5 DuckDB analizi ve pandas karşılaştırması |
 | `data/` | Üretilen CSV ve indirilen Parquet dosyaları — **commit edilmez** |
@@ -78,7 +92,8 @@ kullanıcı popülerliğinde güç yasası, ~%2 iade, ~%5 eksik veri ve kasıtl�
 
 Üreticinin bilinen gerçekçilik kusurları (zarar anomalisinin sabit oranlı olması,
 alım hareketlerinin talepten bağımsız üretilmesi, kupon istiflemesinin sepeti sıfıra
-indirebilmesi) `notes/odev-3.2/cevaplar.md` içinde iyileştirme notu olarak kayıtlıdır.
+indirebilmesi) [`cevaplar.md`](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/notes/odev-3.2/cevaplar.md)
+içinde iyileştirme notu olarak kayıtlıdır.
 
 ## Öne çıkan ölçümler
 
@@ -90,6 +105,13 @@ indirebilmesi) `notes/odev-3.2/cevaplar.md` içinde iyileştirme notu olarak kay
 | `stock_cached` doğrulaması | 12.272 ms | 54 ms | 226× |
 | Yorumsuz ürünler | 1.926 ms | 31 ms | 63× |
 | Ödeme doğrulaması | 766 ms | 249 ms | 3,1× |
+
+> Bu tablodaki **süreler tek koşudur, varyans hesaplanmamıştır**; makine yüküne ve önbellek
+> durumuna göre değişir. Asıl ölçü buffer sayısıdır ve deterministiktir (`stock_cached`
+> doğrulamasında 3.104.072 → 1.624, yani 1.911×). Tekrarlanabilirlik ölçümü için
+> [`perf/p7_tekrarlanabilirlik.sql`](perf/p7_tekrarlanabilirlik.sql) ve
+> [ölçüm raporunun](https://github.com/KumruCelik/ai-engineer-journey/blob/main/bolum03/notes/odev-3.3/olcumler.md)
+> ilgili bölümüne bakınız.
 
 **Star schema (Ödev 3.4)** — 10 iş sorusu toplamı: 769,6 ms → 226,5 ms (3,4×).
 Sipariş taneciğinde önceden hesaplanmış ölçülerde 140×'e kadar kazanç.
