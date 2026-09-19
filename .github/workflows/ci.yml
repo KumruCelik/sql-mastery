@@ -1,0 +1,21 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bagimliliklar
+        run: pip install pytest pytest-cov
+
+      # Kapsam esigi Makefile'da (COV_MIN); CI ile yerel calisma ayrisamasin
+      # diye dogrudan pytest degil make cagriliyor.
+      - name: Test
+        run: make test

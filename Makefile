@@ -1,8 +1,10 @@
 .RECIPEPREFIX = >
+COV_MIN ?= 80
+PY := $(shell [ -x .venv/bin/python ] && echo .venv/bin/python || echo python3)
 PSQL := psql -h localhost -p 5433 -U kumru -d shop -v ON_ERROR_STOP=1
 DUCK := $(HOME)/.local/bin/duckdb
 
-.PHONY: up down wait migrate generate load seed refresh-stock check \
+.PHONY: up down wait migrate generate load seed refresh-stock check test \
         star star-test compare duck duck-compare perf clean help
 
 help:
@@ -20,6 +22,7 @@ help:
 > @echo "duck          NYC taksi verisi uzerinde 10 DuckDB sorgusu"
 > @echo "duck-compare  DuckDB vs pandas, satir vs kolon bazli depolama"
 > @echo "perf          performans laboratuvari olcumleri"
+> @echo "test          generate.py testleri (kapsam esigi COV_MIN)"
 
 up:
 > docker compose up -d
@@ -78,3 +81,10 @@ seed:
 > $(MAKE) load
 > $(MAKE) star
 > $(MAKE) check
+
+test:
+> $(PY) -m pytest --cov-fail-under=$(COV_MIN)
+
+test-kur:
+> python3 -m venv .venv
+> .venv/bin/pip install -q pytest pytest-cov

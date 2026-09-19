@@ -1,0 +1,7 @@
+# Bu depo paketlenmiyor; burada yalnizca test ve kapsam yapilandirmasi var.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=scripts --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["scripts"]
